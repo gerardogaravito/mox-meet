@@ -1,9 +1,44 @@
+import { useState, useEffect } from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
+import Login from '@components/Login/Login';
+import Stocks from '@components/Stocks/Stocks';
+import axios from 'axios';
 
 const Home: NextPage = () => {
+  const [token, setToken] = useState<string>('');
+  const [localUsername, setLocalUsername] = useState<string>('');
+  const [localPassword, setLocalPassword] = useState<string>('');
+  const [sendGet, setSendGet] = useState<boolean>(false);
+
+  const [stocks, setStocks] = useState<string[]>([]);
+
+  useEffect(() => {
+    console.log('sentToken', token);
+    getUserData();
+  }, [sendGet]);
+
+  const getUserData = async () => {
+    const response = await axios
+      .get(
+        `https://dnbnjsi71l.execute-api.us-east-1.amazonaws.com/challenge-prod/users/profile`,
+        {
+          params: {
+            username: localUsername,
+            token: token,
+          },
+        }
+      )
+      .then((res) => {
+        setStocks(res.data.body.symbolLists);
+        console.log('getUserData', res);
+      })
+      .catch((res) => console.error('getUserData', res));
+    // const data = await response?.data;
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -15,6 +50,17 @@ const Home: NextPage = () => {
       <main className={styles.main}>
         <h1 className={styles.title}>Mox Interview</h1>
       </main>
+
+      <Login
+        setToken={setToken}
+        localUsername={localUsername}
+        setLocalUsername={setLocalUsername}
+        localPassword={localPassword}
+        setLocalPassword={setLocalPassword}
+        setSendGet={setSendGet}
+      />
+
+      <Stocks stocks={stocks} />
     </div>
   );
 };
